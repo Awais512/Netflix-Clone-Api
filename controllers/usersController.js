@@ -20,8 +20,36 @@ const getUser = asyncHandler(async (req, res, next) => {
   res.status(200).json(user);
 });
 
+//@route    PUT /api/v1/users/:id
+//@desc     Update User
+//@access   Private
+const updateUser = asyncHandler(async (req, res, next) => {
+  if (req.user.id === req.params.id || req.user.isAdmin) {
+    if (req.body.password) {
+      req.body.password = CryptoJS.AES.encrypt(
+        req.body.password,
+        process.env.PASSWORD_SECRET
+      ).toString();
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return next(new ErrorResponse('User not found'), 404);
+    }
+    res.status(200).json(user);
+  } else {
+    return next(new ErrorResponse('You can only update your account', 403));
+  }
+});
+
 //@route    DELETE /api/v1/users/:id
-//@desc     Delete UserByID
+//@desc     Delete User
 //@access   Private
 const deleteUser = asyncHandler(async (req, res, next) => {
   const user = await User.findByIdAndRemove(req.params.id);
@@ -32,4 +60,4 @@ const deleteUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({ msg: 'User deleted Successfully' });
 });
 
-module.exports = { getUsers, getUser, deleteUser };
+module.exports = { getUsers, getUser, deleteUser, updateUser };
