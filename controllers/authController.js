@@ -18,8 +18,6 @@ const register = asyncHandler(async (req, res, next) => {
   });
   const user = await newUser.save();
   res.status(200).json(user);
-
-  res.status(500).json({ err: error.message });
 });
 
 //@route    POST /api/v1/auth/login
