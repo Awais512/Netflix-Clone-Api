@@ -20,4 +20,16 @@ const getUser = asyncHandler(async (req, res, next) => {
   res.status(200).json(user);
 });
 
-module.exports = { getUsers, getUser };
+//@route    DELETE /api/v1/users/:id
+//@desc     Delete UserByID
+//@access   Private
+const deleteUser = asyncHandler(async (req, res, next) => {
+  const user = await User.findByIdAndRemove(req.params.id);
+  if (!user) {
+    return next(new ErrorResponse('User not found'), 404);
+  }
+
+  res.status(200).json({ msg: 'User deleted Successfully' });
+});
+
+module.exports = { getUsers, getUser, deleteUser };
