@@ -4,10 +4,13 @@ const {
   getUser,
   deleteUser,
   updateUser,
+  getUsersStats,
 } = require('../controllers/usersController');
 const verify = require('../utils/verifyToken');
 
-router.route('/').get(getUsers);
+router.get('/stats', getUsersStats);
+
+router.route('/').get(verify, getUsers);
 router
   .route('/:id')
   .get(getUser)

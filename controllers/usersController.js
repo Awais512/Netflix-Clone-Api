@@ -2,21 +2,27 @@ const User = require('../models/User');
 const CryptoJS = require('crypto-js');
 const asyncHandler = require('express-async-handler');
 const ErrorResponse = require('../utils/errorResponse');
-const jwt = require('jsonwebtoken');
 
 //@route    GET /api/v1/users
 //@desc     Register New User
 //@access   Public
 const getUsers = asyncHandler(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json(users);
+  const query = req.query.new;
+  if (req.user.isAdmin) {
+    const users = query
+      ? await User.find().sort({ _id: -1 }).select('-password').limit(10)
+      : await User.find().select('-password');
+    res.status(200).json(users);
+  } else {
+    return next(new ErrorResponse('Only admin can see all users', 403));
+  }
 });
 
 //@route    GET /api/v1/users/:id
 //@desc     Get UserByID
 //@access   Public
 const getUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id).select('-password');
   res.status(200).json(user);
 });
 
@@ -40,7 +46,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
     );
 
     if (!user) {
-      return next(new ErrorResponse('User not found'), 404);
+      return next(new ErrorResponse('User not found', 404));
     }
     res.status(200).json(user);
   } else {
@@ -52,12 +58,55 @@ const updateUser = asyncHandler(async (req, res, next) => {
 //@desc     Delete User
 //@access   Private
 const deleteUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndRemove(req.params.id);
-  if (!user) {
-    return next(new ErrorResponse('User not found'), 404);
-  }
+  if (req.user.id === req.params.id || req.user.isAdmin) {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return next(new ErrorResponse('User not found'), 404);
+    }
 
-  res.status(200).json({ msg: 'User deleted Successfully' });
+    res.status(200).json({ msg: 'User deleted Successfully' });
+  } else {
+    return next(new ErrorResponse('You can only delete your account', 403));
+  }
 });
 
-module.exports = { getUsers, getUser, deleteUser, updateUser };
+//@route    GET /api/v1/users/stats
+//@desc     Get Users Stats
+//@access   Private
+
+const getUsersStats = asyncHandler(async (req, res, next) => {
+  const today = new Date();
+  const latYear = today.setFullYear(today.setFullYear() - 1);
+
+  const monthArrays = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const data = await User.aggregate([
+    {
+      $project: {
+        month: { $month: '$createdAt' },
+      },
+    },
+    {
+      $group: {
+        _id: '$month',
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+  res.status(200).json(data);
+});
+
+module.exports = { getUsers, getUser, deleteUser, updateUser, getUsersStats };
