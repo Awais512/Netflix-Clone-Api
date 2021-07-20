@@ -2,6 +2,7 @@ const User = require('../models/User');
 const CryptoJS = require('crypto-js');
 const asyncHandler = require('express-async-handler');
 const ErrorResponse = require('../utils/errorResponse');
+const jwt = require('jsonwebtoken');
 
 //@route    POST /api/v1/auth/register
 //@desc     Register New User
@@ -39,7 +40,15 @@ const login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Password did not match', 400));
   }
 
-  res.status(200).json(user);
+  const token = jwt.sign(
+    { id: user._id, isAdmin: user.isAdmin },
+    process.env.PASSWORD_SECRET,
+    { expiresIn: '5d' }
+  );
+
+  const { password, ...info } = user._doc;
+
+  res.status(200).json({ token, ...info });
 });
 
 module.exports = { register, login };
