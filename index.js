@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const connectDb = require('./db');
 dotenv.config();
+const errorHandler = require('./middlewares/error');
 
 //Bringin Routes Files
 const authRoutes = require('./routes/authRoutes');
@@ -25,6 +26,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/movies', movieRoutes);
 app.use('/api/v1/lists', listRoutes);
+app.use(errorHandler);
 
 //Connecting to Server
 app.listen(process.env.PORT, () =>
