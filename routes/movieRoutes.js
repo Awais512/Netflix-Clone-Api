@@ -4,9 +4,11 @@ const {
   updateMovie,
   deleteMovie,
   getMovie,
+  getRandomMovie,
 } = require('../controllers/moviesController');
 const verify = require('../utils/verifyToken');
 
+router.get('/random', verify, getRandomMovie);
 router.route('/').post(verify, createMovie);
 router
   .route('/:id')

@@ -64,4 +64,31 @@ const getMovie = asyncHandler(async (req, res, next) => {
   res.status(200).json(movie);
 });
 
-module.exports = { createMovie, updateMovie, deleteMovie, getMovie };
+//@route    GET /api/v1/auth/movies/random
+//@desc     Get Random Movie
+//@access   Authenticated
+const getRandomMovie = asyncHandler(async (req, res, next) => {
+  const type = req.query.type;
+  let movie;
+  if (type === 'series') {
+    movie = await Movie.aggregate([
+      { $match: { isSeries: true } },
+      { $sample: { size: 1 } },
+    ]);
+  } else {
+    movie = await Movie.aggregate([
+      { $match: { isSeries: false } },
+      { $sample: { size: 1 } },
+    ]);
+  }
+
+  res.status(200).json(movie);
+});
+
+module.exports = {
+  createMovie,
+  updateMovie,
+  deleteMovie,
+  getMovie,
+  getRandomMovie,
+};
