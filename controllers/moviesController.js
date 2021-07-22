@@ -53,6 +53,15 @@ const deleteMovie = asyncHandler(async (req, res, next) => {
   }
 });
 
+//@route    GET /api/v1/auth/movies
+//@desc     Get All Movies
+//@access   Authenticated
+const getMovies = asyncHandler(async (req, res, next) => {
+  const movies = await Movie.find();
+
+  res.status(200).json(movies);
+});
+
 //@route    GET /api/v1/auth/movies/:id
 //@desc     Get  Movie
 //@access   Authenticated
@@ -89,6 +98,7 @@ module.exports = {
   createMovie,
   updateMovie,
   deleteMovie,
+  getMovies,
   getMovie,
   getRandomMovie,
 };
